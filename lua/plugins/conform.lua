@@ -20,10 +20,15 @@ return {
 		-- Define your formatters
 		formatters_by_ft = {
 			lua = { "stylua" },
-			javascript = { "prettier" },
-			typescriptreact = { "prettier" },
+			python = { "isort", "black" },
+			javascript = { "prettierd", "prettier", stop_after_first = true },
 			typescript = { "prettier" },
+			typescriptreact = { "prettier" },
+			javascriptreact = { "prettier" },
+			json = { "prettier" },
 			css = { "prettier" },
+			html = { "prettier" },
+			markdown = { "prettier" },
 		},
 		-- Set default options
 		default_format_opts = {
