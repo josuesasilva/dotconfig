@@ -1,0 +1,43 @@
+{
+  "agent": {
+    "default_model": {
+      "provider": "lmstudio",
+      "model": "qwen2.5-coder-7b-instruct"
+    }
+  },
+  "vim_mode": true,
+  "ui_font_size": 17,
+  "buffer_font_size": 18,
+  "theme": {
+    "mode": "system",
+    "light": "One Dark",
+    "dark": "One Dark"
+  },
+  "tab_bar": {
+    "show": true
+  },
+  "scrollbar": {
+    "show": "never"
+  },
+  "tabs": {
+    "show_diagnostics": "errors"
+  },
+  "indent_guides": {
+    "enabled": true,
+    "coloring": "indent_aware"
+  },
+  "languages": {
+    "TypeScript": {
+      "inlay_hints": {
+        "enabled": true,
+        "show_parameter_hints": false,
+        "show_other_hints": true,
+        "show_type_hints": true
+      }
+    }
+  },
+  "telemetry": {
+    "diagnostics": false,
+    "metrics": false
+  }
+}
