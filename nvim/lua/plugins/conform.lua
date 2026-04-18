@@ -21,6 +21,7 @@ return {
 		formatters_by_ft = {
 			lua = { "stylua" },
 			python = { "isort", "black" },
+			rust = { "rustfmt" },
 			javascript = { "prettierd", "prettier", stop_after_first = true },
 			typescript = { "prettier" },
 			typescriptreact = { "prettier" },
@@ -29,6 +30,7 @@ return {
 			css = { "prettier" },
 			html = { "prettier" },
 			markdown = { "prettier" },
+			swift = { "swift_format" },
 		},
 		-- Set default options
 		default_format_opts = {

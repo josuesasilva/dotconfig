@@ -1,30 +1,39 @@
 return {
 	{
-		{
-			"williamboman/mason.nvim",
-			config = function()
-				require("mason").setup()
-			end,
-		},
-		{
-			"williamboman/mason-lspconfig.nvim",
-			config = function()
-				require("mason-lspconfig").setup({
-					ensure_installed = { "ts_ls", "lua_ls", "vtsls" }, -- Install these servers
-					automatic_installation = true,
-				})
-			end,
+		"mason-org/mason-lspconfig.nvim",
+		dependencies = { "mason-org/mason.nvim" },
+		opts = {
+			ensure_installed = { "lua_ls", "rust_analyzer" },
+			automatic_installation = true,
+			automatic_enable = false,
 		},
 	},
 	{
 		"neovim/nvim-lspconfig",
 		config = function()
-			-- Define your custom on_attach function
-			local function custom_on_attach(client, bufnr)
-				-- Set buffer-specific options
-				vim.api.nvim_buf_set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
+			vim.diagnostic.config({
+				signs = true,
+				underline = true,
+				severity_sort = true,
+				virtual_text = {
+					spacing = 2,
+					source = "if_many",
+					prefix = "●",
+				},
+				float = {
+					border = "rounded",
+					source = "if_many",
+				},
+			})
 
-				-- Define keymaps
+			vim.keymap.set("n", "gl", vim.diagnostic.open_float, { desc = "Show line diagnostics" })
+
+			local capabilities = vim.lsp.protocol.make_client_capabilities()
+			local rust_check_command = vim.fn.executable("cargo-clippy") == 1 and "clippy" or "check"
+
+			local function custom_on_attach(_, bufnr)
+				vim.bo[bufnr].omnifunc = "v:lua.vim.lsp.omnifunc"
+
 				local opts = { buffer = bufnr, noremap = true, silent = true }
 				vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
 				vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
@@ -33,39 +42,21 @@ return {
 				vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
 				vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
 				vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
-
-				-- Optional: Enable formatting on save
-				if client.server_capabilities.documentFormattingProvider then
-					vim.api.nvim_create_autocmd("BufWritePre", {
-						buffer = bufnr,
-						callback = function()
-							vim.lsp.buf.format({ async = false })
-						end,
-					})
-				end
 			end
 
-			-- Configure Swift LSP server
-			vim.lsp.config("sourcekit", {})
+			local sourcekit_cmd = vim.env.SOURCEKIT_LSP_PATH and { vim.env.SOURCEKIT_LSP_PATH } or { "sourcekit-lsp" }
 
-			-- Configure LSP servers (example: TypeScript and Lua)
-			vim.lsp.config("ts_ls", {
+			vim.lsp.config("sourcekit", {
+				cmd = sourcekit_cmd,
+				filetypes = { "swift", "objc", "objcpp", "c", "cpp" },
+				root_markers = { ".bsp", "Package.swift", "compile_commands.json", ".git" },
 				on_attach = custom_on_attach,
-				capabilities = vim.lsp.protocol.make_client_capabilities(),
-				filetypes = { "typescript", "typescriptreact", "javascript", "javascriptreact" },
-				settings = {
-					typescript = {
-						inlayHints = {
-							includeInlayParameterNameHints = "all",
-							includeInlayFunctionLikeReturnTypes = true,
-						},
-					},
-				},
+				capabilities = capabilities,
 			})
 
 			vim.lsp.config("lua_ls", {
 				on_attach = custom_on_attach,
-				capabilities = vim.lsp.protocol.make_client_capabilities(),
+				capabilities = capabilities,
 				settings = {
 					Lua = {
 						diagnostics = { globals = { "vim" } },
@@ -74,50 +65,49 @@ return {
 					},
 				},
 			})
-		end,
-		opts = {
-			-- make sure mason installs the server
-			servers = {
-				vtsls = {
-					-- explicitly add default filetypes, so that we can extend
-					-- them in related extras
-					filetypes = {
-						"javascript",
-						"javascriptreact",
-						"javascript.jsx",
-						"typescript",
-						"typescriptreact",
-						"typescript.tsx",
-					},
-					settings = {
-						complete_function_calls = true,
-						vtsls = {
-							enableMoveToFileCodeAction = true,
-							autoUseWorkspaceTsdk = true,
-							experimental = {
-								maxInlayHintLength = 30,
-								completion = {
-									enableServerSideFuzzyMatch = true,
-								},
+
+			vim.lsp.config("rust_analyzer", {
+				on_attach = custom_on_attach,
+				capabilities = capabilities,
+				settings = {
+					["rust-analyzer"] = {
+						cargo = {
+							allFeatures = true,
+							loadOutDirsFromCheck = true,
+							buildScripts = {
+								enable = true,
 							},
 						},
-						typescript = {
-							updateImportsOnFileMove = { enabled = "always" },
-							suggest = {
-								completeFunctionCalls = true,
+						checkOnSave = true,
+						check = {
+							command = rust_check_command,
+						},
+						diagnostics = {
+							enable = true,
+						},
+						procMacro = {
+							enable = true,
+						},
+						files = {
+							exclude = {
+								".direnv",
+								".git",
+								".jj",
+								".github",
+								".gitlab",
+								"bin",
+								"node_modules",
+								"target",
+								"venv",
+								".venv",
 							},
-							inlayHints = {
-								enumMemberValues = { enabled = true },
-								functionLikeReturnTypes = { enabled = true },
-								parameterNames = { enabled = "literals" },
-								parameterTypes = { enabled = true },
-								propertyDeclarationTypes = { enabled = true },
-								variableTypes = { enabled = false },
-							},
+							watcher = "client",
 						},
 					},
 				},
-			},
-		},
+			})
+
+			vim.lsp.enable({ "sourcekit", "lua_ls", "rust_analyzer" })
+		end,
 	},
 }
