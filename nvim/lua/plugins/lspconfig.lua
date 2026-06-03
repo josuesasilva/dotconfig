@@ -34,7 +34,7 @@ return {
 
       local capabilities = vim.lsp.protocol.make_client_capabilities()
 
-      local function custom_on_attach(_, bufnr)
+      local function custom_on_attach(client, bufnr)
         vim.bo[bufnr].omnifunc = "v:lua.vim.lsp.omnifunc"
 
         --- Define keymaps
